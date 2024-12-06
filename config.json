@@ -1,0 +1,11 @@
+{
+    "model_name": "gemini-1.5-flash-latest",
+    "docs_dir": "./static/docs/",
+    "chunk_size": 2000,
+    "chunk_overlap": 500,
+    "db_dir": "./vectorstore/chroma_db/",
+    "top_k": 3,
+    "memory_size": 4,
+    "table_name": "faq"
+  }
+  

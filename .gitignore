@@ -1,0 +1,5 @@
+# Ignore .env file (for sensitive data like environment variables)
+.env
+
+# ignore local experiment test nb
+chat.ipynb
