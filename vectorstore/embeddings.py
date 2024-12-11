@@ -4,12 +4,19 @@ from chromadb import Documents, EmbeddingFunction, Embeddings
 import google.generativeai as genai
 from google.api_core import retry
 import shutil, os
+import json
+
+config_path="./config.json"
+
+
 
 class GeminiEmbeddingFunction(EmbeddingFunction):
 
   def __call__(self, input: Documents) -> Embeddings:
 
-    model = 'models/embedding-001'
+    with open(config_path, "r") as f:
+        model = json.load(f)["text_embedding_model"] 
+    # model = 'models/embedding-001'
     retry_policy = {"retry": retry.Retry(predicate=retry.if_transient_error)}
 
     return genai.embed_content(model=model,content=input,request_options=retry_policy)["embedding"]

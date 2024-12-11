@@ -4,6 +4,7 @@ from vectorstore.embeddings import create_chroma_db
 import google.generativeai as genai
 from IPython.display import Markdown
 from prompts.documentPrompt import doc_question_answer_prompt
+from prompts.databasePrompt import db_query_prompt
 from loaders.docxLoader import DocxLoader
 from splitters.textsSplitter import RecursiveTextChunker
 from vectorstore.similaritySearch import top_k_message
@@ -44,6 +45,7 @@ class Chatbot:
         self.history = []
         self.query_history = []
         self.id = 0
+        self.prompt =""
 
     def _load_config(self, config_path):
         """Load configuration from a JSON file."""
@@ -97,12 +99,13 @@ class Chatbot:
             print("\033[94m Summarised the conversation.")
 
         passage, _ = top_k_message(query, self.db, top_k=self.top_k)
-        prompt = doc_question_answer_prompt(query=query, relevant_passage=passage, memory=self.history)
+        prompt = db_query_prompt(query=query, relevant_passage=passage, memory=self.history)
+        self.prompt =prompt
         answer = self.model.generate_content(prompt)
 
         self.update_memory(query, answer.text)
 
-        print(f"\033[92m{answer.text}")
+        # print(f"\033[92m{answer.text}")
 
         return answer.text
 
