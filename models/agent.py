@@ -4,19 +4,18 @@ import os
 import time
 import re
 
-from models.chatModel import Chatbot
-model=Chatbot(config_path="./config.json")
-
 
 def extract_action_and_response(text, sql_query = False):
-    thought_pattern = r"(?<=\*\*Thought:\*\*\s)(.*?)(?=\n\n2)"
-    action_pattern = r"(?<=\*\*Action To Be Taken:\*\*\s).*" 
-    response_pattern = r"(?<=\*\*Final Response:\*\*\s).*" 
-    query_pattern = r'(?<=sql\n)(.*?)(?=;)'
-    # thought_pattern = r"(?<=Thought:\s)(.*?)(?=\n\n2)"
-    # action_pattern = r"(?<=Action To Be Taken:\s).*" 
-    # response_pattern = r"(?<=Final Response:\s).*" 
+    # thought_pattern = r"(?<=\*\*Thought:\*\*\s)(.*?)(?=\n\n2)"
+    # action_pattern = r"(?<=\*\*Action To Be Taken:\*\*\s).*" 
+    # response_pattern = r"(?<=\*\*Final Response:\*\*\s).*" 
     # query_pattern = r'(?<=sql\n)(.*?)(?=;)'
+    text = text.replace("*","").replace("\n\n","\n")
+    # print(text)
+    thought_pattern = r"(?<=Thought:\s)(.*?)(?=\n2)"
+    action_pattern = r"(?<=Action To Be Taken:\s).*" 
+    response_pattern = r"(?<=Final Response:\s).*" 
+    query_pattern = r'(?<=sql\n)(.*?)(?=;)'
     if not sql_query:
         action = re.findall(action_pattern, text)
         response = re.findall(response_pattern, text, re.DOTALL)
@@ -36,8 +35,7 @@ def search_db(query):
     df = pd.read_sql(query, engine)
     return df
 
-def Stream_agent(query): 
-    global model
+def Stream_agent(query,*,model): 
     model_output = model.response(query)
     # print(model_output)
     messages = [
@@ -53,6 +51,7 @@ def Stream_agent(query):
             if action[0] == "Response To Human":
                 print(f"\033[94m Thought:{thought[0]}")
                 print(f"\033[92m Response:{response[0]}")
+                model.id += 1
                 model.update_memory(query,response[0])
                 break
             else:
@@ -60,17 +59,19 @@ def Stream_agent(query):
                 print(f"\033[94m Thought:{thought[0]}")
                 # print(f"\033[95m sql_query:{sql_query[0]}")
                 try:
-                    observation = search_db(sql_query[0])
+                    observation = search_db((sql_query[0].replace(r"%", r"%%")))
                     print("Observation: ", observation)
                     messages.extend([
                         { "role": "system", "content": model_output },
                         { "role": "user", "content": f"Observation: {observation}" },
                         ])
                 except:
-                    print("Wrong Query!")
-                    print(f"\033[31m sql_query:{sql_query[0]}")
+                    print("\033[31m Wrong Query!")
+                    print(f"\033[31m sql_query: {sql_query[0].replace('%', '%%')}")
+
                     messages.extend([
-                        { "role": "system", "content": "I have not generated correct sql query. The database is postgresql. Let me Check the think step by step." }
+                        { "role": "system", "content": "I have not generated correct sql query. The database SQL queries compatible \
+                         with **PostgreSQL** for direct execution or **SQLAlchemy ORM** syntax for integration into Python code.Let me regenerate the sql correct sql query." }
                         ])
 
             #To prevent the Rate Limit error for free-tier users, we need to decrease the number of requests/minute.

@@ -1,5 +1,5 @@
 {
-    "model_name": "gemini-1.5-pro",
+    "model_name": "gemini-1.5-flash-8b",
     "text_embedding_model": "models/embedding-001",
     "docs_dir": "./static/docs/",
     "chunk_size": 2000,
