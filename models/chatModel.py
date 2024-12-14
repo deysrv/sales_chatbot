@@ -5,6 +5,7 @@ import google.generativeai as genai
 from IPython.display import Markdown
 from prompts.documentPrompt import doc_question_answer_prompt
 from prompts.databasePrompt import db_query_prompt
+from prompts.databasePlotPrompt import db_query_with_chart_prompt
 from loaders.docxLoader import DocxLoader
 from splitters.textsSplitter import RecursiveTextChunker
 from vectorstore.similaritySearch import top_k_message
@@ -13,7 +14,7 @@ import json
 class Chatbot:
     """Supports basic Q&A using RAG architecture."""
 
-    def __init__(self, config_path="config.json"):
+    def __init__(self, config_path="config.json",want_to_plot=False):
         # Load configuration from file
         self.config = self._load_config(config_path)
 
@@ -46,7 +47,7 @@ class Chatbot:
         self.query_history = []
         self.id = 0
         self.prompt =""
-
+        self.want_to_plot =want_to_plot
     def _load_config(self, config_path):
         """Load configuration from a JSON file."""
         if not os.path.exists(config_path):
@@ -99,7 +100,10 @@ class Chatbot:
             print("\033[94m Summarised the conversation.")
 
         passage, _ = top_k_message(query, self.db, top_k=self.top_k)
-        prompt = db_query_prompt(query=query, relevant_passage=passage, memory=self.history)
+        if self.want_to_plot:
+            prompt = db_query_with_chart_prompt(query=query, relevant_passage=passage, memory=self.history)
+        else:
+            prompt = db_query_prompt(query=query, relevant_passage=passage, memory=self.history)
         self.prompt =prompt
         answer = self.model.generate_content(prompt)
 
