@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import subprocess
 
 
-load_dotenv("../.env",override=True)
+load_dotenv(".env",override=True)
 
 DATABASE_URI = f"postgresql+psycopg2://postgres:{os.getenv('db_password')}@localhost:5432/products"
 
@@ -37,11 +37,13 @@ def extract_action_and_response(text, sql_query = False, python_code = False):
         return action, response, thought
     
 def search_db(query):
-
+    # load_dotenv("../.env",override=True)
     # Create a SQLAlchemy engine
     engine = create_engine(DATABASE_URI)
-    df = pd.read_sql(query, engine)
-    return df
+    with engine.connect() as connection:
+        df = pd.read_sql(query, connection)
+        df = df.iloc[:10].copy()
+    return df.to_json(orient="records")
 
 def graph_plot(code, conn_string):
     """
@@ -114,9 +116,11 @@ def stream_agent(query, *, model):
     messages = [
         {"role": "system", "content": model.prompt}]
     max_retries = 3
+    max_interactions = 5
+    total_interactions =0
     retry_count = 0
 
-    while retry_count < max_retries:
+    while retry_count < max_retries and total_interactions <= max_interactions:
         try:
             # Generate model output
             if len(messages) > 1:
@@ -132,13 +136,15 @@ def stream_agent(query, *, model):
             # print(f"\033[93m Model Output: {model_output}\033[0m")
 
             if action[0] == "Response To Human":
-                handle_response_to_human(model, query, response, thought)
-                break
+                return handle_response_to_human(model, query, response, thought)
+                # break
 
             elif action[0] == "Search Database":
+                total_interactions += 1
                 handle_search_database(model_output, messages, retry_count)
 
             elif action[0] == "Plot Data":
+                total_interactions += 1
                 handle_plot_data(model_output, messages, retry_count)
 
             # Throttle requests to prevent rate-limit errors
@@ -176,6 +182,8 @@ def handle_response_to_human(model, query, response, thought):
     model.id += 1
     model.update_memory(query, response[0])
 
+    return response[0]
+
 
 def handle_search_database(model_output, messages, retry_count):
     """
@@ -189,7 +197,7 @@ def handle_search_database(model_output, messages, retry_count):
         print("\033[93m Observation: ", observation)
         messages.append(
             [{"role": "system", "content": model_output},
-            {"role": "user", "content": f"Observation: {observation}"}]
+            {"role": "user", "content": f"Query Output: {observation}"}]
         )
     except Exception as e:
         print(f"\033[31m SQL Query Error: {e}\033[0m")
