@@ -256,6 +256,26 @@ td {
 td:last-child, th:last-child {
   border-right: none;
 }
+
+/* list styling */
+ul {
+  list-style-type: disc; /* Use 'circle', 'square', or 'none' for variations */
+  margin-left: 20px; /* Adjust to match your layout */
+  padding-left: 0;
+}
+
+ul li {
+  font-family: Arial, sans-serif; /* Adjust to your chatbot's font */
+  font-size: 16px; /* Set appropriate font size */
+  line-height: 1.5; /* Better readability */
+  color: #333; /* Text color */
+  margin-bottom: 8px; /* Space between list items */
+}
+
+ul li::marker {
+  font-size: 1.2em; /* Make bullet points larger or smaller */
+}
+
 /* Reponsive Media Query */
 @media screen and (max-width: 600px) {
   .default-text h1 {

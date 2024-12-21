@@ -9,7 +9,8 @@ import os
 import pandas as pd
 from sqlalchemy import create_engine
 import psycopg2
-
+import datetime
+import pathlib
 
 # Initiate the model
 model=Chatbot(config_path="./config.json",want_to_plot=True)
@@ -36,11 +37,24 @@ class ChatRequest(BaseModel):
 @app.post("/")
 async def chatbot(request: ChatRequest):
 
+    now = datetime.datetime.now()
     user_message = request.query
-
+    print(f"\033[33m User's Query:{user_message}\033[0m")
     response = stream_agent(user_message,model=model) 
 
-    return response
+    plot_file_path = pathlib.Path(r'./static/plot.html')
+    modify_timestamp = plot_file_path.stat().st_mtime
+    modify_date = datetime.datetime.fromtimestamp(modify_timestamp)
+    print('Modified on:', modify_date)
+
+    if modify_date > now:
+        modified = True
+    else:
+        modified = False
+
+    resp_json = {"RESPONSE": response, "CHANGED": modified}
+    
+    return resp_json
 
 
 # @app.get("/connection")

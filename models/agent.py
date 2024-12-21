@@ -197,7 +197,9 @@ def handle_search_database(model_output, messages, retry_count):
         print("\033[93m Observation: ", observation)
         messages.append(
             [{"role": "system", "content": model_output},
-            {"role": "user", "content": f"Query Output: {observation}"}]
+            {"role": "user", "content": f"Query Sample Output: {observation}.\
+             Since thi is a sample subset of the output yo my query. \
+             I should use the sql query only to show the plot if it's required at all."}]
         )
     except Exception as e:
         print(f"\033[31m SQL Query Error: {e}\033[0m")
@@ -238,8 +240,8 @@ def handle_plot_data(model_output, messages, retry_count):
                  ### Visualization Code Guidelines:
                     - The connection string and database connection will be handled externally
                     - no need to create connection seaprately
-                    - don't use the data you have seen earlier, it will be fetched through sql quey using pd.read_sql.
-                    - don't write an function and call it. Directly write the code.
+                    - don't write an function and call it. Directly write the code and save it to the directory './static/plot.html'
+                    - don't use the data you have seen earlier, it will be fetched through sql quey using pd.read_sql
                     - Focus on creating meaningful, clear visualizations
                     - Ensure the Plotly code is concise and follows best practices"""}
             )
