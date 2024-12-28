@@ -56,11 +56,11 @@ const getChatResponse = async (incomingChatDiv) => {
         if (response["CHANGED"]){
             pElement.innerHTML += `<iframe src="../static/plot.html" width="800" height="600" style="border:none;"></iframe>`
         }
-        const converter = new showdown.Converter(({"tables": 'True'}));
+        const converter = new showdown.Converter(({"tables": 'True',"openLinksInNewWindow":"True"}));
         const response_html = converter.makeHtml(response["RESPONSE"].replaceAll("'","").replaceAll("\"","").replaceAll('```',""));
+         
         console.log(response_html);
         pElement.innerHTML += response_html;
-        
         incomingChatDiv.querySelector(".typing-animation").remove();
         incomingChatDiv.querySelector(".chat-details").appendChild(pElement);
         
