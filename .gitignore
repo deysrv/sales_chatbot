@@ -3,7 +3,7 @@
 
 # ignore local experiment test nb
 chat.ipynb
-./vectorstore/chroma_db/*
+/vectorstore/chroma_db/*
 
 # ignore experimental prompts 
-./trash/*
+/trash/*
